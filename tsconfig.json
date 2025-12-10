@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		//"emitDeclarationOnly": true,
+
+		//"sourceMap": true,
+		"target": "ES2022",
+		"module": "NodeNext",
+		"declaration": true,
+
+		"baseUrl": "./",
+		"paths" : {
+			"/*": ["./*"]
+		},
+
+		"outDir": "lib"
+	},
+
+	"include": [
+		"./src/*"
+	]
+}

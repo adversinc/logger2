@@ -1,1 +1,3 @@
-# logger2
+# Advers Logger v2
+
+TODO: tests
