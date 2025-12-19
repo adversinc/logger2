@@ -7,6 +7,11 @@ import { type ConsolaInstance, createConsola, LogLevels } from "consola";
 // From consola sources
 type LogType = "silent" | "fatal" | "error" | "warn" | "log" | "info" | "success" | "fail" | "ready" | "start" | "box" | "debug" | "trace" | "verbose";
 
+export const debugEnvironments = [
+	'development',
+	'test',
+];
+
 /**
  * Creates logger instance with tag, and different log levels for production and development.
  *
@@ -22,7 +27,7 @@ export function createLogger2(tag: string|string[], levelProd: LogType = "warn",
 		}
 	})
 		.withDefaults({
-			level: process.env.NODE_ENV !== "development" ? LogLevels[levelProd] : LogLevels[levelDev],
+			level: debugEnvironments.includes(process.env.NODE_ENV) ? LogLevels[levelProd] : LogLevels[levelDev],
 		});
 
 	if(typeof tag === "string") {

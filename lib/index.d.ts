@@ -3,6 +3,7 @@
  */
 import { type ConsolaInstance } from "consola";
 type LogType = "silent" | "fatal" | "error" | "warn" | "log" | "info" | "success" | "fail" | "ready" | "start" | "box" | "debug" | "trace" | "verbose";
+export declare const debugEnvironments: string[];
 /**
  * Creates logger instance with tag, and different log levels for production and development.
  *
