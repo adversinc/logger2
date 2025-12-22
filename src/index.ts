@@ -12,6 +12,11 @@ export const debugEnvironments = [
 	'test',
 ];
 
+let forceWarnOnLog = false;
+export function forceConsoleWarnOnLog(enable: boolean) {
+	forceWarnOnLog = enable;
+}
+
 /**
  * Creates logger instance with tag, and different log levels for production and development.
  *
@@ -19,7 +24,7 @@ export const debugEnvironments = [
  * - Production: "warn"
  * - Development: "info"
  */
-export function createLogger2(tag: string|string[], levelProd: LogType = "warn", levelDev: LogType = "info"): ConsolaInstance {
+export function createLogger2(tag: string|string[], levelProd: LogType = "warn", levelDev: LogType = "info"): Logger2 {
 	let logger = createConsola({
 		formatOptions: {
 			columns: 1,
@@ -27,8 +32,13 @@ export function createLogger2(tag: string|string[], levelProd: LogType = "warn",
 		}
 	})
 		.withDefaults({
-			level: debugEnvironments.includes(process.env.NODE_ENV) ? LogLevels[levelProd] : LogLevels[levelDev],
+			level: debugEnvironments.includes(process.env.NODE_ENV)? LogLevels[levelProd]: LogLevels[levelDev],
 		});
+
+	if(forceWarnOnLog) {
+		injectLogToWarn(logger);
+		logger.log = logger.warn;
+	}
 
 	if(typeof tag === "string") {
 		logger = logger.withTag(tag);
@@ -41,4 +51,21 @@ export function createLogger2(tag: string|string[], levelProd: LogType = "warn",
 	return logger;
 }
 
-export type Logger2 = ConsolaInstance;
+function injectLogToWarn(logger: ConsolaInstance): void {
+	logger.log = logger.warn;
+
+	// @ts-expect-error
+	logger._withTag = logger.withTag;
+	logger.withTag = function(tag: string) {
+		//console.log(`in custom withTag for log->warn (tag ${tag})`);
+		const taggedLogger = this._withTag(tag);
+		injectLogToWarn(taggedLogger);
+
+		return taggedLogger;
+	};
+}
+
+// This can be type=ConsolaInstance, but it glitches in WebStorm
+export interface Logger2 extends ConsolaInstance{
+
+}
