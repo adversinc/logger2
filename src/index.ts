@@ -32,7 +32,7 @@ export function createLogger2(tag: string|string[], levelProd: LogType = "warn",
 		}
 	})
 		.withDefaults({
-			level: debugEnvironments.includes(process.env.NODE_ENV)? LogLevels[levelProd]: LogLevels[levelDev],
+			level: debugEnvironments.includes(process.env.NODE_ENV)? LogLevels[levelDev]: LogLevels[levelProd],
 		});
 
 	if(forceWarnOnLog) {
