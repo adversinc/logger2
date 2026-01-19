@@ -25,15 +25,19 @@ export function forceConsoleWarnOnLog(enable: boolean) {
  * - Development: "info"
  */
 export function createLogger2(tag: string|string[], levelProd: LogType = "warn", levelDev: LogType = "info"): Logger2 {
+	const level = debugEnvironments.includes(process.env.NODE_ENV)? LogLevels[levelDev]: LogLevels[levelProd];
+
 	let logger = createConsola({
 		formatOptions: {
 			columns: 1,
 			date: false,
-		}
+		},
+		level,
 	})
 		.withDefaults({
-			level: debugEnvironments.includes(process.env.NODE_ENV)? LogLevels[levelDev]: LogLevels[levelProd],
+			level,
 		});
+	console.log(`Level ${level} of ${JSON.stringify(LogLevels)}`);
 
 	if(forceWarnOnLog) {
 		injectLogToWarn(logger);

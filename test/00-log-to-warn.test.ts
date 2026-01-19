@@ -1,4 +1,4 @@
-import { createLogger2, forceConsoleWarnOnLog } from "../src/index";
+import { createLogger2, forceConsoleWarnOnLog } from "../src";
 
 forceConsoleWarnOnLog(true);
 
@@ -11,3 +11,4 @@ const logger2 = logger.withTag("subtag");
 
 logger2.log("this is log from subtag");
 logger2.warn("this is warn from subtag");
+
