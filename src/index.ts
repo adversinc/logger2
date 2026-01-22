@@ -37,7 +37,6 @@ export function createLogger2(tag: string|string[], levelProd: LogType = "warn",
 		.withDefaults({
 			level,
 		});
-	console.log(`Level ${level} of ${JSON.stringify(LogLevels)}`);
 
 	if(forceWarnOnLog) {
 		injectLogToWarn(logger);
