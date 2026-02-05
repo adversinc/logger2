@@ -6,6 +6,11 @@ type LogType = "silent" | "fatal" | "error" | "warn" | "log" | "info" | "success
 export declare const debugEnvironments: string[];
 export declare function forceConsoleWarnOnLog(enable: boolean): void;
 /**
+ * Set default log levels for production and development environments.
+ * These levels will be used if not specified when creating a logger instance.
+ */
+export declare function setDefaultLogLevels(levelProd: LogType, levelDev: LogType): void;
+/**
  * Creates logger instance with tag, and different log levels for production and development.
  *
  * Default levels:

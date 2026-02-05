@@ -64,5 +64,33 @@ function runWithEnv(env: string) {
 				expect(spies.stdout).toHaveBeenCalledTimes(0);
 			});
 		});
+
+		test("setDefaultLogLevels applies when levels are omitted", async () => {
+			await withConsoleSpies(async (spies) => {
+				const { createLogger2, forceConsoleWarnOnLog, setDefaultLogLevels } = await import("../src");
+				forceConsoleWarnOnLog(false);
+
+				setDefaultLogLevels("error", "warn");
+				try {
+					const logger = createLogger2("default-levels");
+					logger.log(`Default log (env: ${process.env.NODE_ENV})`);
+					logger.warn(`Default warn (env: ${process.env.NODE_ENV})`);
+					logger.error(`Default error (env: ${process.env.NODE_ENV})`);
+
+					if (process.env.NODE_ENV === "development") {
+						expect(spies.stderr).toHaveBeenCalledTimes(2);
+						expect(spies.getStderrText()).toContain("Default warn");
+						expect(spies.getStderrText()).toContain("Default error");
+					} else {
+						expect(spies.stderr).toHaveBeenCalledTimes(1);
+						expect(spies.getStderrText()).toContain("Default error");
+					}
+
+					expect(spies.stdout).toHaveBeenCalledTimes(0);
+				} finally {
+					setDefaultLogLevels("warn", "info");
+				}
+			});
+		});
 	});
 }

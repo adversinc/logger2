@@ -17,6 +17,19 @@ export function forceConsoleWarnOnLog(enable: boolean) {
 	forceWarnOnLog = enable;
 }
 
+let defaultLevelProd: LogType = "warn";
+let defaultLevelDev: LogType = "info";
+
+/**
+ * Set default log levels for production and development environments.
+ * These levels will be used if not specified when creating a logger instance.
+ */
+export function setDefaultLogLevels(levelProd: LogType, levelDev: LogType) {
+	defaultLevelProd = levelProd;
+	defaultLevelDev = levelDev;
+}
+
+
 /**
  * Creates logger instance with tag, and different log levels for production and development.
  *
@@ -24,7 +37,10 @@ export function forceConsoleWarnOnLog(enable: boolean) {
  * - Production: "warn"
  * - Development: "info"
  */
-export function createLogger2(tag: string|string[], levelProd: LogType = "warn", levelDev: LogType = "info"): Logger2 {
+export function createLogger2(tag: string|string[], levelProd: LogType = null, levelDev: LogType = null): Logger2 {
+	levelProd ||= defaultLevelProd;
+	levelDev ||= defaultLevelDev;
+
 	const level = debugEnvironments.includes(process.env.NODE_ENV)? LogLevels[levelDev]: LogLevels[levelProd];
 
 	let logger = createConsola({
