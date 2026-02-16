@@ -38,8 +38,8 @@ export function setDefaultLogLevels(levelProd: LogType, levelDev: LogType) {
  * - Development: "info"
  */
 export function createLogger2(tag: string|string[], levelProd: LogType = null, levelDev: LogType = null): Logger2 {
-	levelProd ||= defaultLevelProd;
-	levelDev ||= defaultLevelDev;
+	if(!levelProd) { levelProd = defaultLevelProd; }
+	if(!levelDev) { levelDev = defaultLevelDev; }
 
 	const level = debugEnvironments.includes(process.env.NODE_ENV)? LogLevels[levelDev]: LogLevels[levelProd];
 
