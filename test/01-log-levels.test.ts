@@ -94,3 +94,39 @@ function runWithEnv(env: string) {
 		});
 	});
 }
+
+describe("object formatting", () => {
+	beforeAll(() => {
+		process.env.NODE_ENV = "development";
+	});
+
+	test("writes long objects on one line by default", async () => {
+		await withConsoleSpies(async (spies) => {
+			const { createLogger2, forceConsoleWarnOnLog } = await import("../src");
+			forceConsoleWarnOnLog(false);
+
+			createLogger2("admin-overview-stats", "info", "info").info("Processing metric request", {
+				metric: "users_by_country_timeline",
+				platform_id: undefined,
+				has_date_range: false,
+			});
+
+			expect(spies.getStdoutText().trim()).not.toContain("\n");
+		});
+	});
+
+	test("allowMultiline=true preserves multi-line object formatting", async () => {
+		await withConsoleSpies(async (spies) => {
+			const { createLogger2, forceConsoleWarnOnLog } = await import("../src");
+			forceConsoleWarnOnLog(false);
+
+			createLogger2("admin-overview-stats", "info", "info", { allowMultiline: true }).info("Processing metric request", {
+				metric: "users_by_country_timeline",
+				platform_id: undefined,
+				has_date_range: false,
+			});
+
+			expect(spies.getStdoutText().trim()).toContain("\n");
+		});
+	});
+});

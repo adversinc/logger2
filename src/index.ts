@@ -20,6 +20,13 @@ export function forceConsoleWarnOnLog(enable: boolean) {
 let defaultLevelProd: LogType = "warn";
 let defaultLevelDev: LogType = "info";
 
+export interface CreateLogger2Settings {
+	/**
+	 * Keep Consola's multi-line object formatting. Defaults to false.
+	 */
+	allowMultiline?: boolean;
+}
+
 /**
  * Set default log levels for production and development environments.
  * These levels will be used if not specified when creating a logger instance.
@@ -37,7 +44,12 @@ export function setDefaultLogLevels(levelProd: LogType, levelDev: LogType) {
  * - Production: "warn"
  * - Development: "info"
  */
-export function createLogger2(tag: string|string[], levelProd: LogType = null, levelDev: LogType = null): Logger2 {
+export function createLogger2(
+	tag: string|string[],
+	levelProd: LogType = null,
+	levelDev: LogType = null,
+	settings: CreateLogger2Settings = {},
+): Logger2 {
 	if(!levelProd) { levelProd = defaultLevelProd; }
 	if(!levelDev) { levelDev = defaultLevelDev; }
 
@@ -47,6 +59,8 @@ export function createLogger2(tag: string|string[], levelProd: LogType = null, l
 		formatOptions: {
 			columns: 1,
 			date: false,
+			// `breakLength` is passed to Node's util.inspect by Consola.
+			...(settings.allowMultiline ? {} : { breakLength: Infinity }),
 		},
 		level,
 	})
