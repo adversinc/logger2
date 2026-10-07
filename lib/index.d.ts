@@ -1,9 +1,13 @@
 /**
  * Global logger, new version
  */
-import { type ConsolaInstance } from "consola";
+import { type ConsolaInstance, type ConsolaOptions, type InputLogObject } from "consola";
+import { type LoggerContext } from "./sentry.js";
+export { connectLoggerSentry } from "./sentry.js";
+export type { LoggerContext, LoggerSentrySDK, LoggerSentryOptions } from "./sentry.js";
 type LogType = "silent" | "fatal" | "error" | "warn" | "log" | "info" | "success" | "fail" | "ready" | "start" | "box" | "debug" | "trace" | "verbose";
 export declare const debugEnvironments: string[];
+/** Route ordinary log calls through warn, including descendants created later. */
 export declare function forceConsoleWarnOnLog(enable: boolean): void;
 export interface CreateLogger2Settings {
     /**
@@ -25,5 +29,8 @@ export declare function setDefaultLogLevels(levelProd: LogType, levelDev: LogTyp
  */
 export declare function createLogger2(tag: string | string[], levelProd?: LogType, levelDev?: LogType, settings?: CreateLogger2Settings): Logger2;
 export interface Logger2 extends ConsolaInstance {
+    setContext(context: LoggerContext): Logger2;
+    create(options: Partial<ConsolaOptions>): Logger2;
+    withTag(tag: string): Logger2;
+    withDefaults(defaults: InputLogObject): Logger2;
 }
-export {};

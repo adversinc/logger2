@@ -2,7 +2,10 @@
  * Global logger, new version
  */
 
-import { type ConsolaInstance, createConsola, LogLevels } from "consola";
+import { type ConsolaInstance, type ConsolaOptions, type InputLogObject, type ConsolaReporter, createConsola, LogLevels } from "consola";
+import { reportToSentry, snapshot, type LoggerContext, type LoggerHistory } from "./sentry.js";
+export { connectLoggerSentry } from "./sentry.js";
+export type { LoggerContext, LoggerSentrySDK, LoggerSentryOptions } from "./sentry.js";
 
 // From consola sources
 type LogType = "silent" | "fatal" | "error" | "warn" | "log" | "info" | "success" | "fail" | "ready" | "start" | "box" | "debug" | "trace" | "verbose";
@@ -13,6 +16,7 @@ export const debugEnvironments = [
 ];
 
 let forceWarnOnLog = false;
+/** Route ordinary log calls through warn, including descendants created later. */
 export function forceConsoleWarnOnLog(enable: boolean) {
 	forceWarnOnLog = enable;
 }
@@ -68,11 +72,6 @@ export function createLogger2(
 			level,
 		});
 
-	if(forceWarnOnLog) {
-		injectLogToWarn(logger);
-		logger.log = logger.warn;
-	}
-
 	if(typeof tag === "string") {
 		logger = logger.withTag(tag);
 	} else {
@@ -81,24 +80,51 @@ export function createLogger2(
 		}
 	}
 
-	return logger;
+	return decorateLogger(logger, { own: {}, history: { entries: [] } }, forceWarnOnLog);
 }
 
-function injectLogToWarn(logger: ConsolaInstance): void {
-	logger.log = logger.warn;
+interface ContextNode {
+	own: LoggerContext;
+	parent?: ContextNode;
+	history: LoggerHistory;
+}
 
-	// @ts-expect-error
-	logger._withTag = logger.withTag;
-	logger.withTag = function(tag: string) {
-		//console.log(`in custom withTag for log->warn (tag ${tag})`);
-		const taggedLogger = this._withTag(tag);
-		injectLogToWarn(taggedLogger);
+const sentryReporters = new WeakSet<ConsolaReporter>();
 
-		return taggedLogger;
+/** Resolve inheritance at emission time; descendants override fields without changing their ancestors. */
+function resolveContext(node: ContextNode): LoggerContext {
+	return { ...(node.parent ? resolveContext(node.parent) : {}), ...node.own };
+}
+
+/** Preserve Consola's factory API while binding each child reporter to its own context node. */
+function decorateLogger(logger: ConsolaInstance, node: ContextNode, forceWarn: boolean): Logger2 {
+	const result = logger as Logger2;
+	const originalCreate = logger.create.bind(logger);
+	const reporter: ConsolaReporter = {
+		log: entry => reportToSentry(entry, resolveContext(node), node.history),
 	};
+	sentryReporters.add(reporter);
+	logger.options.reporters = logger.options.reporters.filter(item => !sentryReporters.has(item));
+	logger.addReporter(reporter);
+
+	result.setContext = context => {
+		node.own = { ...node.own, ...snapshot(context) as LoggerContext };
+		return result;
+	};
+	result.create = options => decorateLogger(originalCreate(options), {
+		own: {},
+		parent: node,
+		history: node.history,
+	}, forceWarn);
+
+	if(forceWarn) { result.log = result.warn; }
+	return result;
 }
 
 // This can be type=ConsolaInstance, but it glitches in WebStorm
 export interface Logger2 extends ConsolaInstance{
-
+	setContext(context: LoggerContext): Logger2;
+	create(options: Partial<ConsolaOptions>): Logger2;
+	withTag(tag: string): Logger2;
+	withDefaults(defaults: InputLogObject): Logger2;
 }
